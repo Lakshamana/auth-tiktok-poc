@@ -30,7 +30,7 @@ app.get('/oauth', (req, res) => {
   res.redirect(url)
 })
 
-app.get('/redirect', bodyParser({ extended: false }), (req, res) => {
+app.get('/redirect', bodyParser({ extended: false }), async (req, res) => {
   const { code, error_description } = req.body
 
   console.log({ code, error_description })
@@ -39,21 +39,21 @@ app.get('/redirect', bodyParser({ extended: false }), (req, res) => {
     return res.status(400).json({ error: error_description })
   }
 
-  axios
-    .post('https://open.tiktokapis.com/v2/oauth/token', {
-      client_key: process.env.CLIENT_KEY,
-      client_secret: process.env.CLIENT_SECRET,
-      grant_type: 'authorization_code',
-      code,
-      redirect_uri: process.env.REDIRECT_URI
-    })
-    .then(({ data }) => {
-      return res.status(200).json({
-        accessToken: data.access_token,
-        refreshToken: data.refresh_token
+  try {
+    const { data } = await axios.post(
+      'https://open.tiktokapis.com/v2/oauth/token', {
+        client_key: process.env.CLIENT_KEY,
+        client_secret: process.env.CLIENT_SECRET,
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: process.env.REDIRECT_URI
       })
+
+    return res.status(200).json({
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token
     })
-    .catch(error => {
-      return res.status(400).json({ error: error.message })
-    })
+  } catch (error) {
+    return res.status(400).json({ error: error.message })
+  }
 })
