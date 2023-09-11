@@ -6,11 +6,14 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const qs = require('querystring')
 const bodyParser = require('body-parser')
+const path = require('path')
 const axios = require('axios').default
 
 app.use(cookieParser())
 app.use(cors())
 app.listen(process.env.PORT || 3000)
+
+app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')) })
 
 app.get('/oauth', (req, res) => {
   const csrfState = Math.random().toString(36).substring(2)
@@ -20,7 +23,7 @@ app.get('/oauth', (req, res) => {
 
   // the following params need to be in `application/x-www-form-urlencoded` format.
   url += '?' + qs.stringify({
-    client_id: process.env.CLIENT_KEY,
+    client_key: process.env.CLIENT_KEY,
     redirect_uri: process.env.REDIRECT_URI,
     response_type: 'code',
     scope: process.env.SCOPE,
