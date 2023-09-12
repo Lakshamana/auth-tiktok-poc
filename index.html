@@ -6,9 +6,8 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-	<!-- Bootstrap CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-		integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<!-- Bulma CSS -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
 
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
@@ -22,8 +21,8 @@
 			align-items: center;
 		}
 
-		h3 {
-			margin: 100px 0;
+		h1 {
+			margin: 4rem 0;
 		}
 
 		.login-btn {
@@ -35,10 +34,13 @@
 </head>
 
 <body>
-	<h3>DEMO - Sign in with TikTok</h3>
+	<h1>DEMO - Sign in with TikTok</h1>
 
-	<a class="btn btn-light login-btn" href="https://auth-tiktok-poc.onrender.com/oauth">
-		Sign In with Tiktok <i class="bi bi-tiktok"></i>
+	<a class="button login-btn" href="https://auth-tiktok-poc.onrender.com/oauth">
+		<span>Sign In with Tiktok</span>
+		<span class="icon">
+			<i class="bi bi-tiktok"></i>
+		</span>
 	</a>
 </body>
 
