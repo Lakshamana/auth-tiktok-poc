@@ -22,6 +22,7 @@
 			const params = new URLSearchParams(window.location.search)
 
 			document.getElementById("username").innerText = params.get("username") || '{{username}}'
+			document.getElementById("avatar").src = params.get("avatar_url")
 			document.getElementById("like-count").innerText = +params.get("like_count") || 0
 			document.getElementById("follower-count").innerText = +params.get("follower_count") || 0
 			
@@ -47,7 +48,7 @@
 				<article class="media">
 					<figure class="media-left">
 						<p class="image is-64x64">
-							<img src="https://bulma.io/images/placeholders/64x64.png" alt="Image" />
+							<img id="avatar" onerror="this.src='https://bulma.io/images/placeholders/128x128.png';" alt="Image" />
 						</p>
 					</figure>
 					<div class="media-content">

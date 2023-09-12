@@ -70,7 +70,8 @@ app.get('/redirect', bodyParser, async (req, res) => {
     )
 
     const params = {
-      username: userDataResponse.data.open_id,
+      avatar_url: userDataResponse.data.avatar_url,
+      username: userDataResponse.data.display_name,
       like_count: userDataResponse.data.like_count,
       follower_count: userDataResponse.data.follower_count,
       is_verified: userDataResponse.data.is_verified
