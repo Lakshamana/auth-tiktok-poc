@@ -11,19 +11,28 @@ const axios = require('axios').default
 
 app.use(cookieParser())
 app.use(cors())
-app.listen(process.env.PORT || 3000)
 
-app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')) })
-app.get('/user-detail', (req, res) => { res.sendFile(path.join(__dirname, 'user-detail.html')) })
+app.get('/', (_, res) => { res.sendFile(path.join(__dirname, 'index.html')) })
+app.get('/user/show', bodyParser, (_, res) => { res.sendFile(path.join(__dirname, 'user-detail.html')) })
 
-app.get('/oauth', (req, res) => {
+const auth = refreshToken => {
+  return axios.post(
+    'https://open.tiktokapis.com/v2/oauth/token', {
+      client_key: process.env.CLIENT_KEY,
+      client_secret: process.env.CLIENT_SECRET,
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken
+    })
+    .then(({ data }) => data.access_token)
+    .catch(err => err)
+}
+
+app.get('/oauth', (_, res) => {
   const csrfState = Math.random().toString(36).substring(2)
   res.cookie('csrfState', csrfState, { maxAge: 60000 })
 
-  let url = 'https://www.tiktok.com/v2/auth/authorize'
-
   // the following params need to be in `application/x-www-form-urlencoded` format.
-  url += '?' + qs.stringify({
+  const url = 'https://www.tiktok.com/v2/auth/authorize?' + qs.stringify({
     client_key: process.env.CLIENT_KEY,
     redirect_uri: process.env.REDIRECT_URI,
     response_type: 'code',
@@ -34,7 +43,7 @@ app.get('/oauth', (req, res) => {
   res.redirect(url)
 })
 
-app.get('/redirect', bodyParser, async (req, res) => {
+app.post('/redirect', bodyParser, async (req, res) => {
   const { code, error_description } = req.body
 
   console.log({ code, error_description })
@@ -43,9 +52,8 @@ app.get('/redirect', bodyParser, async (req, res) => {
     return res.status(400).json({ error: error_description })
   }
 
-  let data
   try {
-    data = await axios.post(
+    const { data } = await axios.post(
       'https://open.tiktokapis.com/v2/oauth/token', {
         client_key: process.env.CLIENT_KEY,
         client_secret: process.env.CLIENT_SECRET,
@@ -53,9 +61,17 @@ app.get('/redirect', bodyParser, async (req, res) => {
         code,
         redirect_uri: process.env.REDIRECT_URI
       })
+
+    res.redirect(`/user/retrieve?access_token=${data.access_token}&refresh_token=${data.refresh_token}`)
+
+    return res.status(200).json({ access_token })
   } catch (error) {
     return res.status(401).json({ error: error.message })
   }
+})
+
+app.get('/user/retrieve', async (req, res, next) => {
+  const { access_token, refresh_token } = req.query
 
   try {
     const userDataResponse = await axios.get(
@@ -64,7 +80,7 @@ app.get('/redirect', bodyParser, async (req, res) => {
           fields: 'open_id,avatar_url,display_name,is_verified,profile_deep_link'
         },
         headers: {
-          Authorization: `Bearer ${data.access_token}`
+          Authorization: `Bearer ${access_token}`
         }
       }
     )
@@ -77,10 +93,21 @@ app.get('/redirect', bodyParser, async (req, res) => {
       is_verified: userDataResponse.data.is_verified
     }
 
-    res.redirect(`/user-detail?${qs.stringify(params)}`)
+    res.redirect(`/user/show?${qs.stringify(params)}`)
 
     return res.status(200).json({ data: userDataResponse.data })
   } catch (error) {
+    if (error.response.code === 'access_token_invalid') {
+      const auth = await auth(refresh_token)
+        .catch(err => res.status(424).json({ error: err.message }))
+
+      res.redirect(`/user/retrieve?access_token=${auth.data.access_token}&refresh_token=${auth.data.refresh_token}`)
+      return
+    }
+
+    res.redirect('/?error=true&error_description=' + error.message)
     return res.status(400).json({ error: error.message })
   }
 })
+
+app.listen(process.env.PORT || 3000)
