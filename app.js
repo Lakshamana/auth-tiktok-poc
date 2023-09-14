@@ -13,7 +13,7 @@ app.use(cookieParser())
 app.use(cors())
 
 app.get('/', (_, res) => { res.sendFile(path.join(__dirname, 'index.html')) })
-app.get('/user/show', bodyParser, (_, res) => { res.sendFile(path.join(__dirname, 'user-detail.html')) })
+app.get('/user/show', (_, res) => { console.log('test'); res.sendFile(path.join(__dirname, 'user-detail.html')) })
 
 const auth = refreshToken => {
   return axios.post(
@@ -98,10 +98,10 @@ app.get('/user/retrieve', async (req, res, next) => {
     return res.status(200).json({ data: userDataResponse.data })
   } catch (error) {
     if (error.response.code === 'access_token_invalid') {
-      const auth = await auth(refresh_token)
+      const authResponse = await auth(refresh_token)
         .catch(err => res.status(424).json({ error: err.message }))
 
-      res.redirect(`/user/retrieve?access_token=${auth.data.access_token}&refresh_token=${auth.data.refresh_token}`)
+      res.redirect(`/user/retrieve?access_token=${authResponse.data.access_token}&refresh_token=${authResponse.data.refresh_token}`)
       return
     }
 
